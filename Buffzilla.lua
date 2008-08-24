@@ -1,67 +1,37 @@
 --
 --  Buffzilla by Funkjedi
 --
---  Credits:
---    Cladhaire - addon object and localization setup, love your coding style
---
 --  EXAMPLES
 --  /buffzilla buff Self with Arcane Intellect priority 25
 --  /buffzilla buff Priest with Arcane Intellect priority 20
 --  /buffzilla buff Everyone with Arcane Intellect
 --
 
+local L = BuffzillaLocals
+Buffzilla = DongleStub("Dongle-1.1"):New("Buffzilla")
 
--- Create the addon object
-Buffzilla = {
-	events = {},
-	eventFrame = CreateFrame("Frame"),
-	RegisterEvent = function(self, event, method)
-		self.eventFrame:RegisterEvent(event)
-		self.events[event] = event or method
-	end,
-	UnregisterEvent = function(self, event)
-		self.eventFrame:UnregisterEvent(event)
-		self.events[event] = nil
-	end,
-	version = GetAddOnMetadata("Buffzilla", "Version")
-}
-
-Buffzilla.eventFrame:SetScript("OnEvent", function(self, event, ...)
-	local method = Buffzilla.events[event]
-	if method and Buffzilla[method] then
-		Buffzilla[method](Buffzilla, event, ...)
-	end
-end)
-
-
-Buffzilla:RegisterEvent("ADDON_LOADED")
-function Buffzilla:ADDON_LOADED(event, addon)
-	if addon == "Buffzilla" then
-		self:UnregisterEvent("ADDON_LOADED")	
-		self.defaults = {
-			profile = {
-				buffset = {},
-				notifier = {
-					enable = true,
-					lock = false,
-					scale = 1.0,
-					alpha = 1.0,
-				},
+function Buffzilla:Initialize(event, addon)
+	self.db = self:InitializeDB("BuffzillaDB", {
+		char = {
+			buffset = {},
+			notifier = {
+				enabled = true,
+				oncooldown = true,
+				outofrange = true,
+				locked = false,
+				scale = 1.0,
+				alpha = 1.0,
 			},
-		}
+		},
+	})
 
-		self.db = LibStub("AceDB-3.0"):New("BuffzillaDB", self.defaults, "Default")
+	self:RegisterEvent("UPDATE_BINDINGS")
+	self:RegisterEvent("PARTY_MEMBERS_CHANGED")
+	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 
-		self:RegisterEvent("UPDATE_BINDINGS")
-		self:RegisterEvent("PLAYER_ENTERING_WORLD")
-		self:RegisterEvent("PARTY_MEMBERS_CHANGED")
-		self:RegisterEvent("PLAYER_REGEN_ENABLED")
-		self:RegisterEvent("PLAYER_REGEN_DISABLED")
-		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		
-
-		self:CreateNotifier()
-	end
+	self:CreateNotifier()
+	self:InitializeConfig()
 end
 
 function Buffzilla:UPDATE_BINDINGS()
@@ -74,10 +44,11 @@ function Buffzilla:UPDATE_BINDINGS()
 end
 
 
-function Buffzilla:PLAYER_ENTERING_WORLD()
-	self:UpdateNotifier()
-end
+-- create a repeating timer to check for missing buffs
+Buffzilla:ScheduleRepeatingTimer("BUFFZILLA_BUFF_CHECK", function()	Buffzilla:UpdateNotifier() end, 1)
 
+
+-- refresh party cache when the party changes
 function Buffzilla:PARTY_MEMBERS_CHANGED()
 	self:CachePartyMembers()
 	self:UpdateNotifier()
@@ -95,28 +66,16 @@ function Buffzilla:PLAYER_REGEN_DISABLED()
 	self:ClearNotifier()
 end
 
-function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED()
-	local events = {
-		SPELL_CAST_SUCCESS = true,
-		SPELL_AURA_APPLIED = true,
-		SPELL_AURA_REFRESH = true,
-		SPELL_AURA_REMOVED = true,
-		SPELL_AURA_STOLEN = true,
-	}
-
-	if (events[arg2]) then Buffzilla:UpdateNotifier() end
-end
-
 
 -- cache all the missing buffs
 function Buffzilla:FindMissingBuffs()
 	self.NeededBuffs = {}
 	self:BuildBuffCache()
 
-	for _,buff in ipairs(self.db.profile.buffset) do
-		if (buff.target == "Self") then
+	for _,buff in ipairs(self.db.char.buffset) do
+		if buff.target == "Self" then
 			Buffzilla:CheckBuff(self.PartyMembers.Player, buff)
-		elseif (self.PartyMembers[buff.target]) then
+		elseif self.PartyMembers[buff.target] then
 			for _,person in ipairs(self.PartyMembers[buff.target]) do
 				Buffzilla:CheckBuff(person, buff)
 			end
@@ -124,10 +83,12 @@ function Buffzilla:FindMissingBuffs()
 	end
 
 	-- return the highest priority buff
-	if (#self.NeededBuffs > 0) then
+	if #self.NeededBuffs > 0 then
 		local highest = 1
 		for index,buff in ipairs(self.NeededBuffs) do
-			if (buff.inrange and buff.priority > self.NeededBuffs[highest].priority) then highest = index end
+			if buff.inrange and not buff.oncooldown and buff.priority > self.NeededBuffs[highest].priority then 
+				highest = index
+			end
 		end
 		return self.NeededBuffs[highest]
 	end
@@ -135,19 +96,24 @@ end
 
 -- check if person needs buff
 function Buffzilla:CheckBuff(person,buff)
-	if (not self.BuffCache[person][buff.spellname]) then
+	local cooldown, oncooldown = select(2, GetSpellCooldown(buff.spellname)), false
+	if cooldown > 0 then oncooldown = true end
+
+	if not self.BuffCache[person][buff.spellname] then
 		table.insert(self.NeededBuffs, {
 			person = person,
 			spellname = buff.spellname,
 			priority = buff.priority,
 			inrange = IsSpellInRange(buff.spellname, person),
+			oncooldown = oncooldown,
+			cooldown = cooldown,
 		})
 	end
 end
 
 -- cache the current buffs for everyone in our party
 function Buffzilla:BuildBuffCache()
-	if (not self.PartyMembers) then self:CachePartyMembers() end
+	if not self.PartyMembers then self:CachePartyMembers() end
 
 	self.BuffCache = {}
 	for _,person in ipairs(self.PartyMembers.Everyone) do
@@ -157,7 +123,7 @@ function Buffzilla:BuildBuffCache()
 		while true do
 			index = index + 1
 			local buffname = UnitBuff(person, index)
-			if (not buffname) then break end
+			if not buffname then break end
 			self.BuffCache[person][buffname] = true
 		end
 	end
@@ -171,14 +137,29 @@ function Buffzilla:CachePartyMembers()
 	}
 
 	local players = GetNumPartyMembers();
-	if (players) then
+	if players then
 		for person = 1, players do
 			local unitname, unitclass = UnitName("party" .. person), UnitClass("party" .. person)
-			if (unitname and unitclass) then
-				if (not self.PartyMembers[unitclass]) then self.PartyMembers[unitclass] = {} end
+			if unitname and unitclass then
+				if not self.PartyMembers[unitclass] then self.PartyMembers[unitclass] = {} end
 				table.insert(self.PartyMembers[unitclass], unitname)
 				table.insert(self.PartyMembers.Everyone, unitname)
 			end
 		end
 	end
+end
+
+
+function Buffzilla:AddBuff(target, spellname, priority)
+	if not GetSpellInfo(spellname) then return nil end
+	if not priority then priority = 10 end
+
+	table.insert(self.db.char.buffset, {target = target, spellname = spellname,	priority = priority})
+	Buffzilla:UpdateNotifier()
+	return true
+end
+
+function Buffzilla:ClearBuffs()
+	self.db.char.buffset = {}
+	Buffzilla:UpdateNotifier()
 end

@@ -1,24 +1,22 @@
 ## Interface: 20400
 ## Title: Buffzilla
-## Notes: Acts as your buff assistant
+## Notes: Buffzilla is a simple buff reminder addon.
 ## Author: Funkjedi
-## Version: 1.0
+## Version: 1.01
 ## X-Category: Buffs
+## X-Website: http://wow.curseforge.com/projects/buffzilla
 ## SavedVariables: BuffzillaDB
-
-
-Libraries\LibStub\LibStub.lua
-Libraries\CallbackHandler-1.0\CallbackHandler-1.0.xml
-Libraries\AceGUI-3.0\AceGUI-3.0.xml
-Libraries\AceConfig-3.0\AceConfig-3.0.xml
-Libraries\AceEvent-3.0\AceEvent-3.0.xml
-Libraries\AceDB-3.0\AceDB-3.0.xml
-Libraries\AceDBOptions-3.0\AceDBOptions-3.0.xml
 
 
 Localization.enUS.lua
 
+Dongle.lua
 Buffzilla.lua
 Buffzilla_Notifier.lua
 
 Buffzilla_Config.lua
+
+
+options\tekKonfig\tekKonfig.xml
+options\Buffs.lua
+options\Notifier.lua
