@@ -96,6 +96,9 @@ end
 
 -- check if person needs buff
 function Buffzilla:CheckBuff(person,buff)
+	local inrange = true
+	if person ~= UnitName("player") then inrange = IsSpellInRange(buff.spellname, person) end
+
 	local cooldown, oncooldown = select(2, GetSpellCooldown(buff.spellname)), false
 	if cooldown > 0 then oncooldown = true end
 
@@ -104,7 +107,7 @@ function Buffzilla:CheckBuff(person,buff)
 			person = person,
 			spellname = buff.spellname,
 			priority = buff.priority,
-			inrange = IsSpellInRange(buff.spellname, person),
+			inrange = inrange,
 			oncooldown = oncooldown,
 			cooldown = cooldown,
 		})

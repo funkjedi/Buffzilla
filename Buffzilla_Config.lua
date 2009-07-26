@@ -31,6 +31,6 @@ function Buffzilla:InitializeConfig()
 	end)
 
 	self.cmd:RegisterSlashHandler(L["options - Open the Notifer options window."], L["options"], function()
-		InterfaceOptionsFrame_OpenToFrame("Buffzilla")
+		InterfaceOptionsFrame_OpenToCategory("Buffzilla")
 	end)
 end
