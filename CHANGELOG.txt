@@ -1,3 +1,8 @@
+====Changes in 1.03
+
+fixed taint warnings when UPDATE_BINDINGS event fires in combat
+removed all legacy code from the old event based update system
+
 ====Changes in 1.02
 
 updated to latest tekKonfig 

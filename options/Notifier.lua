@@ -1,3 +1,5 @@
+-- uses tekKonfig
+-- git://github.com/tekkub/tekkonfig.git
 
 
 local L = BuffzillaLocals

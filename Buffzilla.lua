@@ -32,38 +32,36 @@ function Buffzilla:Initialize(event, addon)
 
 	self:CreateNotifier()
 	self:InitializeConfig()
+	self:PLAYER_REGEN_ENABLED();
 end
 
 function Buffzilla:UPDATE_BINDINGS()
-	ClearOverrideBindings(self.notifier)
-
-	-- override the bindings for our secure button
-	local key1, key2 = GetBindingKey("BUFFZILLACASTBUTTON")
-	if key1 then SetOverrideBindingClick(self.notifier, false, key1, "BuffzillaNotifier") end
-	if key2 then SetOverrideBindingClick(self.notifier, false, key2, "BuffzillaNotifier") end
+	if not InCombatLockdown() then
+		ClearOverrideBindings(self.notifier)
+	
+		-- override the bindings for our secure button
+		local key1, key2 = GetBindingKey("BUFFZILLACASTBUTTON")
+		if key1 then SetOverrideBindingClick(self.notifier, false, key1, "BuffzillaNotifier") end
+		if key2 then SetOverrideBindingClick(self.notifier, false, key2, "BuffzillaNotifier") end
+	end
 end
 
 
--- create a repeating timer to check for missing buffs
-Buffzilla:ScheduleRepeatingTimer("BUFFZILLA_BUFF_CHECK", function()	Buffzilla:UpdateNotifier() end, 1)
+-- when leaving combat enable buff monitoring
+-- creates a repeating timer to check for missing buffs
+function Buffzilla:PLAYER_REGEN_ENABLED()
+	self:ScheduleRepeatingTimer("BUFFZILLA_BUFF_CHECK", function() Buffzilla:UpdateNotifier() end, 1)
+end
 
+-- when entering combat disable buff monitoring
+-- removes the repeating timer checking for missing buffs
+function Buffzilla:PLAYER_REGEN_DISABLED()
+	self:CancelTimer("BUFFZILLA_BUFF_CHECK")
+end
 
 -- refresh party cache when the party changes
 function Buffzilla:PARTY_MEMBERS_CHANGED()
 	self:CachePartyMembers()
-	self:UpdateNotifier()
-end
-
--- when leaving combat enable buff monitoring
-function Buffzilla:PLAYER_REGEN_ENABLED()
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	self:UpdateNotifier()
-end
-
--- when entering combat disable buff monitoring
-function Buffzilla:PLAYER_REGEN_DISABLED()
-	self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	self:ClearNotifier()
 end
 
 
@@ -158,11 +156,9 @@ function Buffzilla:AddBuff(target, spellname, priority)
 	if not priority then priority = 10 end
 
 	table.insert(self.db.char.buffset, {target = target, spellname = spellname,	priority = priority})
-	Buffzilla:UpdateNotifier()
 	return true
 end
 
 function Buffzilla:ClearBuffs()
 	self.db.char.buffset = {}
-	Buffzilla:UpdateNotifier()
 end

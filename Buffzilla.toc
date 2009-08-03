@@ -7,6 +7,10 @@
 ## X-Website: http://wow.curseforge.com/projects/buffzilla
 ## X-WoWI-ID: 10487
 ## SavedVariables: BuffzillaDB
+## X-Curse-Packaged-Version: v1.03
+## X-Curse-Project-Name: Buffzilla
+## X-Curse-Project-ID: project-7783
+## X-Curse-Repository-ID: wow/project-7783/mainline
 
 
 Localization.enUS.lua
