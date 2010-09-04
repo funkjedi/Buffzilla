@@ -1,8 +1,9 @@
 
+
 function Buffzilla:CreateNotifier()
 	self.notifier = CreateFrame("Button", "BuffzillaNotifier", UIParent, "SecureActionButtonTemplate")
 	self.notifier:SetClampedToScreen(true)
-	self.notifier:SetPoint("CENTER", 0, 0)
+	self.notifier:SetPoint("CENTER")
 	self.notifier:SetWidth(32)
 	self.notifier:SetHeight(32)
 	self.notifier:EnableMouse(true)
@@ -16,36 +17,35 @@ function Buffzilla:CreateNotifier()
 	self.notifier.icon:SetTexCoord(0.08,0.92,0.08,0.92)
 
 	self.notifier.cooldown = CreateFrame("Cooldown", nil, self.notifier, "CooldownFrameTemplate")
-	self.notifier.cooldown:SetPoint("CENTER", 0, -1)
+	self.notifier.cooldown:SetPoint("TOPLEFT", self.notifier, "TOPLEFT", 0, -1)
 	self.notifier.cooldown:SetWidth(32)
 	self.notifier.cooldown:SetHeight(32)
 	self.notifier.cooldown:Hide()
 
 	self.notifier.unit = self.notifier:CreateFontString("OVERLAY", nil, "GameFontHighlightLarge")
 	self.notifier.unit:SetPoint("TOPLEFT", self.notifier, "TOPRIGHT", 2, 1)
-	self.notifier.unit:SetFont("Interface\\AddOns\\Buffzilla\\Fonts\\Custom.ttf", 24)
+	self.notifier.unit:SetFont("Interface\\AddOns\\Buffzilla\\fonts\\bold.ttf", 24)
 
 	self.notifier.spell = self.notifier:CreateFontString("OVERLAY", nil, "GameFontNormalSmall")
 	self.notifier.spell:SetPoint("TOPLEFT", self.notifier.unit, "BOTTOMLEFT", 1, 4)
-	self.notifier.spell:SetFont("Interface\\AddOns\\Buffzilla\\Fonts\\Custom.ttf", 14)
-
+	self.notifier.spell:SetFont("Interface\\AddOns\\Buffzilla\\fonts\\bold.ttf", 14)
 
 	-- enable the notifier to be dragged
 	self.notifier:RegisterForDrag("RightButton")
-	self.notifier:SetScript("OnDragStop", function(self, button) self:StopMovingOrSizing() end)
-	self.notifier:SetScript("OnDragStart", function(self, button) 
+	self.notifier:SetScript("OnDragStop", function(self, button) self:StopMovingOrSizing()	end)
+	self.notifier:SetScript("OnDragStart", function(self, button)
 		if not Buffzilla.db.char.notifier.locked then self:StartMoving() end
 	end)
 end
 
 function Buffzilla:UpdateNotifier()
-	local buff = Buffzilla:FindMissingBuffs()
+	local buff = self:GetHighestPriorityBuff()
 	if not buff or (buff.oncooldown and buff.cooldown < 3) then 
 		self:ClearNotifier()
 		return
 	end
 
-	if buff.inrange and not buff.oncooldown then
+	if not buff.oncooldown then
 		self.notifier:SetAttribute("unit", buff.person)
 		self.notifier:SetAttribute("spell", buff.spellname)
 	else
@@ -61,11 +61,7 @@ function Buffzilla:UpdateNotifier()
 		self.notifier.icon:SetTexture(GetSpellTexture(buff.spellname))
 		self.notifier.icon:SetAllPoints()
 
-		if not buff.inrange then
-			self.notifier.unit:SetVertexColor(0.6,0.6,0.8)
-			self.notifier.spell:SetVertexColor(0.6,0.6,0.8)
-			self.notifier.icon:SetVertexColor(0.4,0.4,0.8)
-		elseif buff.oncooldown then
+		if buff.oncooldown then
 			self.notifier.unit:SetVertexColor(0.8,0.6,0.6)
 			self.notifier.spell:SetVertexColor(0.8,0.6,0.6)
 			self.notifier.icon:SetVertexColor(0.8,0.4,0.4)
@@ -102,3 +98,4 @@ function Buffzilla:ShowHideNotifier()
 		self.notifier:Hide()
 	end
 end
+

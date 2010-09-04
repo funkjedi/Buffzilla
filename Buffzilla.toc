@@ -1,27 +1,20 @@
-## Interface: 30100
+## Interface: 30300
 ## Title: Buffzilla
 ## Notes: Buffzilla is a simple buff reminder addon.
-## Author: Funkjedi
-## Version: 1.02
+## Author: funkjedi
+## Version: 1.04
 ## X-Category: Buffs
 ## X-Website: http://wow.curseforge.com/projects/buffzilla
 ## X-WoWI-ID: 10487
-## SavedVariables: BuffzillaDB
-## X-Curse-Packaged-Version: v1.03
+## X-Curse-Packaged-Version: v1.04
 ## X-Curse-Project-Name: Buffzilla
 ## X-Curse-Project-ID: project-7783
 ## X-Curse-Repository-ID: wow/project-7783/mainline
+## SavedVariables: BuffzillaDB
 
-
-Localization.enUS.lua
-
-Dongle.lua
-Buffzilla.lua
-Buffzilla_Notifier.lua
-
-Buffzilla_Config.lua
-
-
-options\tekKonfig\tekKonfig.xml
-options\Buffs.lua
-options\Notifier.lua
+embeds.xml
+localization\localization.enUS.lua
+buffzilla.lua
+notifier.lua
+commands.lua
+options.lua

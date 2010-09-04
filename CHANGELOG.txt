@@ -1,20 +1,19 @@
-====Changes in 1.03
+1.04
+- rewriting/restructuring the addon code
 
-fixed taint warnings when UPDATE_BINDINGS event fires in combat
-removed all legacy code from the old event based update system
+1.03
+- fixed taint warnings when UPDATE_BINDINGS event fires in combat
+- removed all legacy code from the old event based update system
 
-====Changes in 1.02
+1.02
+-  updated to latest tekKonfig 
+-  fixed broken api call in the slash command
 
-updated to latest tekKonfig 
-fixed broken api call in the slash command
+1.01
+-  buffs on cooldown or out of range are now given lowest priority
+-  added help to the slash cmd, /buffzilla now lists all available options
+-  settings are now saved per-character instead of in profiles, this means you will need to re-enter any buffs that you had made previously setup
+-  switched from using Ace-3.0 to Dongle
 
-====Changes in 1.01
-
-buffs on cooldown or out of range are now given lowest priority
-added help to the slash cmd, /buffzilla now lists all available options
-settings are now saved per-character instead of in profiles, this means you will need to re-enter any buffs that you had made previously setup
-switched from using Ace-3.0 to Dongle
-
-====Changes in 1.0
-
-initial release
+1.0
+-  initial release
