@@ -1,3 +1,13 @@
+2.0
+- removed all party functionality
+- removed the priority argument from slash commands; priority is now based off the order of the watch list
+- replaced the buff command with the watch command; takes a single spell or a comma-separated list of spells
+- removed the options command; using the slash command with no arguments will bring up the options window
+- implemented a gui based method for managing the watch list
+- fixed the sizing options; when scaling the notifier it no longer shifts positions
+- fixed bug with dual-spec when switching specs; if you no longer know the spell after switching specs you won't be reminded about the buff
+- added /bz as a shorter alias for /buffzilla
+
 1.04
 - rewriting/restructuring the addon code
 

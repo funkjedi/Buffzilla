@@ -9,37 +9,33 @@ function Buffzilla:Initialize(event, addon)
 			bufflog = {},
 			notifier = {
 				enabled = true,
-				oncooldown = true,
-				outofrange = true,
 				locked = false,
 				scale = 1.0,
 				alpha = 1.0
 			}
 		}
-	})
+	});
 
-	self:CreateNotifier()
-	self:CreateSlashCommands()
+	self:CreateNotifier();
+	self:CreateInterfaceOptions();
 end
 
 function Buffzilla:Enable()
-	self:RegisterEvent('UPDATE_BINDINGS')
-	self:RegisterEvent('PARTY_MEMBERS_CHANGED')
-	self:RegisterEvent('PLAYER_REGEN_ENABLED')
-	self:RegisterEvent('PLAYER_REGEN_DISABLED')
-	self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
-	self:PARTY_MEMBERS_CHANGED()
-	self:PLAYER_REGEN_ENABLED()
+	self:RegisterEvent('UPDATE_BINDINGS');
+	self:RegisterEvent('PLAYER_REGEN_ENABLED');
+	self:RegisterEvent('PLAYER_REGEN_DISABLED');
+	self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED');
+	self:PLAYER_REGEN_ENABLED();
 end
 
 
 --keybinding text
-BINDING_HEADER_BUFFZILLA = 'Buffzilla'
-BINDING_NAME_BUFFZILLACASTBUTTON = L['Cast any missing buffs']
+BINDING_HEADER_BUFFZILLA = L['BUFFZILLA'];
+BINDING_NAME_BUFFZILLACASTBUTTON = L['KEYBINDING_DESC'];
 
 function Buffzilla:UPDATE_BINDINGS()
 	if not InCombatLockdown() then
-		ClearOverrideBindings(self.notifier)
+		ClearOverrideBindings(self.notifier);
 
 		-- override the bindings for our secure button
 		local key1, key2 = GetBindingKey('BUFFZILLACASTBUTTON')
@@ -52,171 +48,119 @@ end
 -- creates a repeating timer to check for missing buffs
 function Buffzilla:PLAYER_REGEN_ENABLED()
 	self:ScheduleRepeatingTimer('BUFFZILLA_BUFF_CHECK', function()
-		Buffzilla:UpdateNotifier()
-	end, 0.25)
+		Buffzilla:UpdateNotifier();
+	end, 0.5);
 end
 
 -- when entering combat disable buff monitoring
 -- removes the repeating timer checking for missing buffs
 function Buffzilla:PLAYER_REGEN_DISABLED()
-	self:CancelTimer('BUFFZILLA_BUFF_CHECK')
-end
-
--- refresh party cache when the party changes
-function Buffzilla:PARTY_MEMBERS_CHANGED()
-	self.units = {
-		Me = UnitName('player'),
-		Everyone = {UnitName('player')},
-	}
-	local party = GetNumPartyMembers();
-	if party then
-		for index = 1, party do
-			local unitname, unitclass = UnitName('party' .. index), UnitClass('party' .. index)
-			if unitname and unitclass then
-				if not self.Players[unitclass] then
-					self.Players[unitclass] = {}
-				end
-				table.insert(self.Players[unitclass], unitname)
-				table.insert(self.Players.Everyone, unitname)
-			end
-		end
-	end
+	self:CancelTimer('BUFFZILLA_BUFF_CHECK');
 end
 
 -- keeps track of all buffs and when they were last cast
 function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local timestamp, combatEvent, _, sourceName, _,_, destName, _, spellId, spellName, _, auraType = ...;
-	if auraType == 'BUFF' and (combatEvent == 'SPELL_AURA_APPLIED' or combatEvent == 'SPELL_AURA_REFRESH') then
-		self.db.char.bufflog[destName .. spellName] = timestamp
-
-		-- remove entries that are older the 1 hours as most buffs don't last longer than an hour
-		local current_timestamp = time()
-		for key, recorded_timestamp in pairs(self.db.char.bufflog) do
-			if current_timestamp - recorded_timestamp > 3600 then
-				self.db.char.bufflog[key] = nil
-			end
+	if auraType == 'BUFF' and destName == UnitName('player') then
+		if combatEvent == 'SPELL_AURA_APPLIED' or combatEvent == 'SPELL_AURA_REFRESH' or combatEvent == 'SPELL_AURA_REMOVED' then
+			self.db.char.bufflog[spellName] = timestamp;
 		end
 	end
-end
-
-
-function Buffzilla:CheckUnitForMissingBuff(unitname, rule)
-	
-	local spellname = false
-	if type(rule.spellname) == "table" then
-		for _, spell in ipairs(rule.spellname) do
-			if spellname then
-				local a, b = self.db.char.bufflog[unitname .. spellname], self.db.char.bufflog[unitname .. spell]
-			 	if a and b and a < b then
-					spellname = spell
-				end
-			else
-				if self.db.char.bufflog[unitname .. spell] then
-					spellname = spell
-				end
-			end
-		end
-		if not spellname then
-			spellname = rule.spellname[1]
-		end
-	else
-		spellname = rule.spellname
-	end
-
-	if not self.UnitBuffs[unitname][spellname] then
-		local inrange = true
-		if unitname ~= self.units.Me then
-			inrange = IsSpellInRange(spellname, unitname)
-		end
-		local cooldown, oncooldown = select(2, GetSpellCooldown(spellname)), false
-		if cooldown > 0 then
-			oncooldown = true
-		end
-		table.insert(self.MissingUnitBuffs, {
-			person = unitname,
-			spellname = spellname,
-			priority = rule.priority,
-			inrange = inrange,
-			oncooldown = oncooldown,
-			cooldown = cooldown,
-		})
-	end
-
 end
 
 function Buffzilla:GetHighestPriorityBuff()
-
-	-- cache the buffs
-	self.UnitBuffs = {}
-	self.MissingUnitBuffs = {}
-	for _,person in ipairs(self.units.Everyone) do
-		self.UnitBuffs[person] = {}
-		for index = 1, 40 do
-			local name, _,_,_,_,_, expirationTime, unitCaster, _,_,_, spellId = UnitAura(person, index, 'HELPFUL')
-			if name then
-				self.UnitBuffs[person][name] = {
-					name = name,
-					expirationTime = expirationTime,
-					spellId = spellId,
-					unitCaster = unitCaster,
-				}
-			else
-				break
-			end
+	local buffs = {}; -- cache current buffs in a lookup table
+	for index = 1, 40 do
+		local name, _,_,_,_,_, expirationTime, unitCaster, _,_,_, spellId = UnitAura('player', index, 'HELPFUL');
+		if name then
+			buffs[name] = {
+				name = name,
+				expirationTime = expirationTime,
+				spellId = spellId,
+				unitCaster = unitCaster,
+			};
+		else
+			break;
 		end
 	end
-
-	-- process any rules
-	for _,rule in ipairs(self.db.char.buffset) do
-		if rule.target == 'Self' then
-			self:CheckUnitForMissingBuff(self.units.Me, rule)
-		elseif self.units[rule.target] then
-			for _,person in ipairs(self.units[rule.target]) do
-				self:CheckUnitForMissingBuff(person, rule)
+	-- find any missing buffs
+	local missingBuffs = {};
+	for _, buffset in ipairs(self.db.char.buffset) do
+		local spellname = false;
+		if type(buffset.spellname) == "table" then
+			-- multiple spells can be specified in a table
+			-- spell priority is determine by the current or last cast
+			-- then defaulting to the first buff in the list if none is found
+			for _, spell in ipairs(buffset.spellname) do
+				if buffs[spell] then
+					spellname = spell;
+					break;
+				end
+				if spellname then
+					local a, b = self.db.char.bufflog[spellname], self.db.char.bufflog[spell]
+				 	if a and b and a < b then
+						spellname = spell;
+					end
+				else
+					if self.db.char.bufflog[spell] then
+						spellname = spell;
+					end
+				end
 			end
+			if not spellname then
+				spellname = buffset.spellname[1];
+			end
+		else
+			spellname = buffset.spellname;
+		end
+		-- if we know the buff and we're missing it add it to our list
+		if spellname and GetSpellInfo(spellname) and not buffs[spellname] then
+			local cooldown, oncooldown = select(2, GetSpellCooldown(spellname)), false;
+			if cooldown and cooldown > 0 then
+				oncooldown = true;
+			end
+			table.insert(missingBuffs, {
+				person = UnitName('player'),
+				spellname = spellname,
+				priority = buffset.priority,
+				oncooldown = oncooldown,
+				cooldown = cooldown,
+			});
 		end
 	end
-
 	-- return the highest priority missing buff
-	if #self.MissingUnitBuffs > 0 then
-		local highest = 1
-		for index,buff in ipairs(self.MissingUnitBuffs) do
-			if buff.inrange and not buff.oncooldown and buff.priority > self.MissingUnitBuffs[highest].priority then 
-				highest = index
+	if #missingBuffs > 0 then
+		local highest = 1;
+		for index, buff in ipairs(missingBuffs) do
+			if not buff.oncooldown and buff.priority < missingBuffs[highest].priority then
+				highest = index;
 			end
 		end
-		return self.MissingUnitBuffs[highest]
+		return missingBuffs[highest];
 	end
-
 end
 
 
-function Buffzilla:AddRule(target, spellstring, priority)
-
-	local spells = {}
-	local spell_found = true
-	string.gsub(spellstring, '%s*([^,]+)%s*,?%s*', function(spellname)
-		local spellid = select(3, string.find(spellname, "|c%x+|Hspell:(.+)|h%[.*%]"))
-		spellname = GetSpellInfo(spellid or spellname)
+function Buffzilla:AddRule(spellstring)
+	local spells = {};
+	local spell_found = true;
+	string.gsub(spellstring, '%s*([^,]*[^, ])%s*,?%s*', function(spellname)
+		local spellid = select(3, string.find(spellname, "|c%x+|Hspell:(.+)|h%[.*%]"));
+		spellname = GetSpellInfo(spellid or spellname);
 		if spellname then
-			table.insert(spells, spellname)
+			table.insert(spells, spellname);
 		else
-			spell_found = false
+			spell_found = false;
 		end
 	end)
-
 	if spell_found then
 		table.insert(self.db.char.buffset, {
-			target = target,
 			spellname = #spells > 1 and spells or spells[1],
-			priority = priority and priority or 10
-		})
-		return true
+			priority = #self.db.char.buffset + 1
+		});
+		return true;
 	end
-
 end
-
-
 
 function Buffzilla:ClearRules()
 	wipe(self.db.char.buffset)
