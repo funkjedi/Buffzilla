@@ -3,6 +3,10 @@
 function Buffzilla:CreateNotifier()
 	self.notifier = CreateFrame("Button", "BuffzillaNotifier", UIParent, "SecureActionButtonTemplate")
 	self.notifier:SetClampedToScreen(true)
+	if self.db.char.notifier.framePosition then
+		self.notifier:ClearAllPoints();
+		self.notifier:SetPoint(unpack(self.db.char.notifier.framePosition))
+	end
 	self.notifier:SetPoint("CENTER")
 	self.notifier:SetWidth(32)
 	self.notifier:SetHeight(32)
@@ -28,14 +32,17 @@ function Buffzilla:CreateNotifier()
 
 	-- enable the notifier to be dragged
 	self.notifier:RegisterForDrag("RightButton")
-	self.notifier:SetScript("OnDragStop", function(self, button) self:StopMovingOrSizing()	end)
+	self.notifier:SetScript("OnDragStop", function(self, button) 
+		self:StopMovingOrSizing()
+		Buffzilla.db.char.notifier.framePosition = { self:GetPoint() }
+	end)
 	self.notifier:SetScript("OnDragStart", function(self, button)
 		if not Buffzilla.db.char.notifier.locked then self:StartMoving() end
 	end)
 end
 
 function Buffzilla:UpdateNotifier()
-	local buff = self:GetHighestPriorityBuff();
+	local buff = self:GetHighestPriorityBuff()
 	if not buff or (buff.oncooldown and buff.cooldown < 3) then 
 		self:ClearNotifier()
 		return
@@ -85,7 +92,7 @@ end
 function Buffzilla:ShowHideNotifier()
 	if not self.db.char.notifier.enabled then
 		self.notifier:Hide()
-		return;
+		return
 	end
 
 	local old_scale = self.notifier:GetScale()
@@ -94,7 +101,7 @@ function Buffzilla:ShowHideNotifier()
 	self.notifier:SetScale(self.db.char.notifier.scale)
 	self.notifier:SetAlpha(self.db.char.notifier.alpha)
 
-	local scale = self.notifier:GetScale();
+	local scale = self.notifier:GetScale()
 	local point, relativeTo, relativePoint, xOfs, yOfs = self.notifier:GetPoint()
 
 	self.notifier:ClearAllPoints()

@@ -1,3 +1,7 @@
+2.01
+- frame position is now saved even if the addon is disabled then enabled again
+- memory and cpu usage optimizations
+
 2.0
 - removed all party functionality
 - removed the priority argument from slash commands; priority is now based off the order of the watch list
