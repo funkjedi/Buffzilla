@@ -1,3 +1,6 @@
+2.02
+- updated for patch 5.0.4
+
 2.01
 - frame position is now saved even if the addon is disabled then enabled again
 - memory and cpu usage optimizations
@@ -20,7 +23,7 @@
 - removed all legacy code from the old event based update system
 
 1.02
--  updated to latest tekKonfig 
+-  updated to latest tekKonfig
 -  fixed broken api call in the slash command
 
 1.01

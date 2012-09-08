@@ -31,14 +31,14 @@ end
 function Buffzilla:CreateInterfaceOptions()
 	local frame = CreateFrame('Frame', nil, InterfaceOptionsFrame)
 	frame.name = L['BUFFZILLA']
-	
+
 	InterfaceOptions_AddCategory(frame)
 
 
 	local title = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 	title:SetText(L['WATCHLIST'])
 	title:SetPoint("TOPLEFT", 16, -16)
-	
+
 	local subtitle = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	subtitle:SetText(L['WATCHLIST_SUBTITLE'])
 	subtitle:SetHeight(38)
@@ -72,6 +72,7 @@ function Buffzilla:CreateInterfaceOptions()
 				Buffzilla:PrintF(L['WATCH_ERROR'], spellstring)
 			end
 		end
+		self:UpdateNotifier()
 	end
 
 	local buffs = wf.factory('MultiLineEditBox', {
@@ -103,7 +104,7 @@ function Buffzilla:CreateInterfaceOptions()
 	hooksecurefunc("ChatEdit_InsertLink", ChatEdit_InsertLinkHook)
 
 	-- add a clear button
-	buffs.clearButton = CreateFrame("Button", "BuffzillaWatchlistClearButton", buffs.frame, "UIPanelButtonTemplate2")
+	buffs.clearButton = CreateFrame("Button", "BuffzillaWatchlistClearButton", buffs.frame, "UIPanelButtonTemplate")
 	buffs.clearButton:SetPoint('BOTTOMLEFT', buffs.button, 'BOTTOMRIGHT', 5, 0)
 	buffs.clearButton:SetHeight(22)
 	buffs.clearButton:SetWidth(buffs.label:GetStringWidth() + 24)
@@ -117,7 +118,7 @@ function Buffzilla:CreateInterfaceOptions()
 		buffs.clearButton:Enable()
 	end)
 
-	
+
 	--generic getter and setter functions for our notifier
 	local function getOption(key)
 		return Buffzilla.db.char.notifier[key]
@@ -126,12 +127,12 @@ function Buffzilla:CreateInterfaceOptions()
 		Buffzilla.db.char.notifier[key] = value
 		Buffzilla:ShowHideNotifier()
 	end
-	
+
 
 	local notifierTitle = frame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 	notifierTitle:SetText(L['NOTIFIER'])
 	notifierTitle:SetPoint("TOPLEFT", buffs.frame, 'BOTTOMLEFT', 0, -20)
-	
+
 	notifierTitle.subtitle = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	notifierTitle.subtitle:SetText(L['NOTIFIER_SUBTITLE'])
 	notifierTitle.subtitle:SetHeight(32)
@@ -140,8 +141,8 @@ function Buffzilla:CreateInterfaceOptions()
 	notifierTitle.subtitle:SetNonSpaceWrap(true)
 	notifierTitle.subtitle:SetJustifyH("LEFT")
 	notifierTitle.subtitle:SetJustifyV("TOP")
-	
-	
+
+
 	local enableNotifier = wf.factory('CheckBox', {
 		key = 'enabled',
 		parent = frame,
@@ -152,7 +153,7 @@ function Buffzilla:CreateInterfaceOptions()
 		set = setOption
 	})
 	enableNotifier.frame:SetPoint('TOPLEFT', notifierTitle.subtitle, 'BOTTOMLEFT', 10, 0)
-	
+
 	local lockNotifier = wf.factory('CheckBox', {
 		key = 'locked',
 		parent = frame,
@@ -164,8 +165,8 @@ function Buffzilla:CreateInterfaceOptions()
 		set = setOption
 	})
 	lockNotifier.frame:SetPoint('LEFT', enableNotifier.frame, 'RIGHT', 20, 0)
-	
-	
+
+
 	local scaleNotifier = wf.factory('Slider', {
 		key = 'scale',
 		parent = frame,
@@ -180,7 +181,7 @@ function Buffzilla:CreateInterfaceOptions()
 	scaleNotifier.label:SetJustifyH("LEFT")
 	scaleNotifier.slider:SetPoint("TOP", scaleNotifier.label, "BOTTOM", 0, -35)
 	scaleNotifier.frame:SetPoint('TOPLEFT', enableNotifier.frame, 'BOTTOMLEFT', -10, -10)
-	
+
 	scaleNotifier.subtitle = frame:CreateFontString(nil, 'ARTWORK', 'GameFontHighlightSmall')
 	scaleNotifier.subtitle:SetText(L['NOTIFIER_SIZE_SUBTITLE'])
 	scaleNotifier.subtitle:SetHeight(32)
@@ -189,8 +190,8 @@ function Buffzilla:CreateInterfaceOptions()
 	scaleNotifier.subtitle:SetNonSpaceWrap(true)
 	scaleNotifier.subtitle:SetJustifyH('LEFT')
 	scaleNotifier.subtitle:SetJustifyV('TOP')
-	
-	
+
+
 	local alphaNotifier = wf.factory('Slider', {
 		key = 'alpha',
 		parent = frame,
@@ -205,8 +206,8 @@ function Buffzilla:CreateInterfaceOptions()
 	alphaNotifier.label:SetJustifyH("LEFT")
 	alphaNotifier.slider:SetPoint("TOP", scaleNotifier.label, "BOTTOM", 0, -35)
 	alphaNotifier.frame:SetPoint('LEFT', scaleNotifier.frame, 'RIGHT', 30, 0)
-	
-	
+
+
 	alphaNotifier.subtitle = frame:CreateFontString(nil, 'ARTWORK', 'GameFontHighlightSmall')
 	alphaNotifier.subtitle:SetText(L['NOTIFIER_OPACITY_SUBTITLE'])
 	alphaNotifier.subtitle:SetHeight(32)

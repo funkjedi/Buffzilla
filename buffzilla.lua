@@ -20,6 +20,9 @@ function Buffzilla:Initialize(event, addon)
 	self:CreateInterfaceOptions()
 
 	self:RegisterEvent('UPDATE_BINDINGS')
+	self:RegisterEvent('PLAYER_REGEN_ENABLED')
+	self:RegisterEvent('PLAYER_ENTERING_WORLD', 'PLAYER_REGEN_ENABLED')
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
 	self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
 
 	-- expired anything that hasn't been seen in a week
@@ -47,9 +50,23 @@ function Buffzilla:UPDATE_BINDINGS()
 	end
 end
 
+-- when leaving combat enable buff monitoring
+-- creates a repeating timer to check for missing buffs
+function Buffzilla:PLAYER_REGEN_ENABLED()
+	self:ScheduleRepeatingTimer('BUFFZILLA_BUFF_CHECK', function()
+		Buffzilla:UpdateNotifier();
+	end, 0.5);
+end
+
+-- when entering combat disable buff monitoring
+-- removes the repeating timer checking for missing buffs
+function Buffzilla:PLAYER_REGEN_DISABLED()
+	self:CancelTimer('BUFFZILLA_BUFF_CHECK');
+end
+
 -- keeps track of all buffs and when they were last cast
 function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
-	local timestamp, eventType, sourceGUID, sourceName, _, destGUID, destName, _, spellId, spellName, _, auraType = select(1, ...)
+	local timestamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceFlags2, destGUID, destName, destFlags, destFlags2, spellId, spellName, spellSchool, auraType = select(1, ...)
 	local auraEventTypes = {
 		['SPELL_AURA_APPLIED'] = true,
 		['SPELL_AURA_REMOVED'] = true,
@@ -61,9 +78,6 @@ function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	}
 	if auraEventTypes[eventType] and auraType == 'BUFF' and destGUID == UnitGUID('player') then
 		self.db.char.bufflog[spellName] = timestamp
-		if not InCombatLockdown() then
-			self:UpdateNotifier()
-		end
 	end
 end
 

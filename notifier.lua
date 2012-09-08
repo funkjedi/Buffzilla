@@ -32,7 +32,7 @@ function Buffzilla:CreateNotifier()
 
 	-- enable the notifier to be dragged
 	self.notifier:RegisterForDrag("RightButton")
-	self.notifier:SetScript("OnDragStop", function(self, button) 
+	self.notifier:SetScript("OnDragStop", function(self, button)
 		self:StopMovingOrSizing()
 		Buffzilla.db.char.notifier.framePosition = { self:GetPoint() }
 	end)
@@ -43,8 +43,13 @@ end
 
 function Buffzilla:UpdateNotifier()
 	local buff = self:GetHighestPriorityBuff()
-	if not buff or (buff.oncooldown and buff.cooldown < 3) then 
+	if not buff then
 		self:ClearNotifier()
+		return
+	end
+
+	-- prevent buffs notification from being repainted over and over
+	if self.lastbuff and self.lastbuff.spellname == buff.spellname and buff.oncooldown then
 		return
 	end
 
@@ -77,7 +82,7 @@ function Buffzilla:UpdateNotifier()
 	end
 
 	-- stash the buff
-	self.LastBuff = buff
+	self.lastbuff = buff
 end
 
 function Buffzilla:ClearNotifier()
@@ -85,7 +90,7 @@ function Buffzilla:ClearNotifier()
 	self.notifier:SetAttribute("spell", nil)
 	self.notifier:Hide()
 
-	self.LastBuff = nil
+	self.lastbuff = nil
 	CooldownFrame_SetTimer(self.notifier.cooldown, 0, 0, 0)
 end
 
