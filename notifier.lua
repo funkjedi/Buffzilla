@@ -77,7 +77,7 @@ function Buffzilla:UpdateNotifier()
 		end
 
 		local start, duration, enable = GetSpellCooldown(buff.spellname)
-		CooldownFrame_SetTimer(self.notifier.cooldown, start, duration, enable)
+		CooldownFrame_Set(self.notifier.cooldown, start, duration, enable)
 		self.notifier:Show()
 	end
 
@@ -91,7 +91,7 @@ function Buffzilla:ClearNotifier()
 	self.notifier:Hide()
 
 	self.lastbuff = nil
-	CooldownFrame_SetTimer(self.notifier.cooldown, 0, 0, 0)
+	CooldownFrame_Set(self.notifier.cooldown, 0, 0, 0)
 end
 
 function Buffzilla:ShowHideNotifier()

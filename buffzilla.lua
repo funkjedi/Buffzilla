@@ -32,6 +32,8 @@ function Buffzilla:Initialize(event, addon)
 			self.db.char.bufflog[key] = nil
 		end
 	end
+
+	self:ScheduleRepeatingTimer('BUFFZILLA_BUFF_CHECK', function() Buffzilla:UpdateNotifier() end, 0.5);
 end
 
 
@@ -50,19 +52,6 @@ function Buffzilla:UPDATE_BINDINGS()
 	end
 end
 
--- when leaving combat enable buff monitoring
--- creates a repeating timer to check for missing buffs
-function Buffzilla:PLAYER_REGEN_ENABLED()
-	self:ScheduleRepeatingTimer('BUFFZILLA_BUFF_CHECK', function()
-		Buffzilla:UpdateNotifier();
-	end, 0.5);
-end
-
--- when entering combat disable buff monitoring
--- removes the repeating timer checking for missing buffs
-function Buffzilla:PLAYER_REGEN_DISABLED()
-	self:CancelTimer('BUFFZILLA_BUFF_CHECK');
-end
 
 -- keeps track of all buffs and when they were last cast
 function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
@@ -179,4 +168,3 @@ end
 function Buffzilla:ClearRules()
 	wipe(self.db.char.buffset)
 end
-
