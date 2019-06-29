@@ -1,8 +1,8 @@
-## Interface: 50001
+## Interface: 80200
 ## Title: Buffzilla
 ## Notes: Buffzilla is a simple buff reminder addon.
 ## Author: funkjedi
-## Version: 2.02
+## Version: 2.03
 ## X-Category: Buffs
 ## X-Website: http://wow.curseforge.com/projects/buffzilla
 ## X-WoWI-ID: 10487

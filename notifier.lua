@@ -7,7 +7,7 @@ function Buffzilla:CreateNotifier()
 		self.notifier:ClearAllPoints();
 		self.notifier:SetPoint(unpack(self.db.char.notifier.framePosition))
 	end
-	self.notifier:SetPoint("CENTER")
+	--self.notifier:SetPoint("CENTER")
 	self.notifier:SetWidth(32)
 	self.notifier:SetHeight(32)
 	self.notifier:EnableMouse(true)
@@ -112,4 +112,3 @@ function Buffzilla:ShowHideNotifier()
 	self.notifier:ClearAllPoints()
 	self.notifier:SetPoint(point, relativeTo, relativePoint, xOfs / scale * old_scale, yOfs / scale * old_scale)
 end
-

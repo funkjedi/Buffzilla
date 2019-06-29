@@ -1,3 +1,6 @@
+2.03
+- updated for patch 8.2.0
+
 2.02
 - updated for patch 5.0.4
 
