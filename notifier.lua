@@ -3,11 +3,11 @@
 function Buffzilla:CreateNotifier()
 	self.notifier = CreateFrame("Button", "BuffzillaNotifier", UIParent, "SecureActionButtonTemplate")
 	self.notifier:SetClampedToScreen(true)
+	self.notifier:SetPoint("CENTER")
 	if self.db.char.notifier.framePosition then
 		self.notifier:ClearAllPoints();
 		self.notifier:SetPoint(unpack(self.db.char.notifier.framePosition))
 	end
-	--self.notifier:SetPoint("CENTER")
 	self.notifier:SetWidth(32)
 	self.notifier:SetHeight(32)
 	self.notifier:EnableMouse(true)
@@ -50,6 +50,10 @@ function Buffzilla:UpdateNotifier()
 
 	-- prevent buffs notification from being repainted over and over
 	if self.lastbuff and self.lastbuff.spellname == buff.spellname and buff.oncooldown then
+		return
+	end
+
+	if UnitAffectingCombat(buff.person) then
 		return
 	end
 
