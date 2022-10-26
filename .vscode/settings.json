@@ -4,6 +4,12 @@
         //"undefined-global"
     ],
     "Lua.diagnostics.globals": [
+        "CooldownFrame_Set",
+        "DongleStub",
+        "InterfaceOptions_AddCategory",
+        "InterfaceOptionsFrame",
+        "InterfaceOptionsFrame_OpenToCategory",
+        "SlashCmdList",
     ],
     "Lua.workspace.ignoreDir": [
         ".vscode",
