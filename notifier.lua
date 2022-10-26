@@ -42,6 +42,10 @@ function Buffzilla:CreateNotifier()
 end
 
 function Buffzilla:UpdateNotifier()
+	if InCombatLockdown() then
+		return
+	end
+
 	local buff = self:GetHighestPriorityBuff()
 	if not buff then
 		self:ClearNotifier()
@@ -104,7 +108,7 @@ function Buffzilla:ShowHideNotifier()
 		return
 	end
 
-	local old_scale = self.notifier:GetScale()
+	--local old_scale = self.notifier:GetScale()
 
 	self.notifier:Show()
 	self.notifier:SetScale(self.db.char.notifier.scale)
@@ -113,6 +117,6 @@ function Buffzilla:ShowHideNotifier()
 	local scale = self.notifier:GetScale()
 	local point, relativeTo, relativePoint, xOfs, yOfs = self.notifier:GetPoint()
 
-	self.notifier:ClearAllPoints()
-	self.notifier:SetPoint(point, relativeTo, relativePoint, xOfs / scale * old_scale, yOfs / scale * old_scale)
+	--self.notifier:ClearAllPoints()
+	--self.notifier:SetPoint(point, relativeTo, relativePoint, xOfs / scale * old_scale, yOfs / scale * old_scale)
 end

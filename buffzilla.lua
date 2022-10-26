@@ -70,6 +70,7 @@ end
 function Buffzilla:GetHighestPriorityBuff()
 	local buffs = {} -- cache current buffs in a lookup table
 	self.buffdebug = buffs
+
 	for index = 1, 40 do
 		local name, _,_,_,_,_, expirationTime, unitCaster, _,_,_, spellId = UnitAura('player', index, 'HELPFUL')
 		if name then
@@ -83,10 +84,37 @@ function Buffzilla:GetHighestPriorityBuff()
 			break
 		end
 	end
+
+	local _, mainHandExpiration, _, mainHandEnchantID, _, offHandExpiration, _, offHandEnchantID = GetWeaponEnchantInfo()
+
+	if mainHandEnchantID == 5401 then
+		local name, _, _, _, _, _, spellId = GetSpellInfo('Windfury Weapon')
+
+		buffs[name] = {
+			name = name,
+			expirationTime = mainHandExpiration,
+			spellId = spellId,
+			unitCaster = 'player',
+		}
+	end
+
+	if offHandEnchantID == 5400 then
+		local name, _, _, _, _, _, spellId = GetSpellInfo('Flametongue Weapon')
+
+		buffs[name] = {
+			name = name,
+			expirationTime = offHandExpiration,
+			spellId = spellId,
+			unitCaster = 'player',
+		}
+	end
+
 	-- find any missing buffs
 	local missingBuffs = {}
+
 	for _, buffset in ipairs(self.db.char.buffset) do
 		local spellname = false
+
 		if type(buffset.spellname) == "table" then
 			-- multiple spells can be specified in a table
 			-- spell priority is determine by the current or last cast
@@ -113,6 +141,7 @@ function Buffzilla:GetHighestPriorityBuff()
 		else
 			spellname = buffset.spellname
 		end
+
 		-- if we know the buff and we're missing it add it to our list
 		if spellname and GetSpellInfo(spellname) and not buffs[spellname] then
 			local cooldown, oncooldown = select(2, GetSpellCooldown(spellname)), false
@@ -128,6 +157,7 @@ function Buffzilla:GetHighestPriorityBuff()
 			})
 		end
 	end
+
 	-- return the highest priority missing buff
 	if #missingBuffs > 0 then
 		local highest = 1

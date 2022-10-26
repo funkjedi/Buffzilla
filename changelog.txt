@@ -1,3 +1,6 @@
+2.05
+- updated for patch 9.0.1
+
 2.04
 - updated for classic
 
