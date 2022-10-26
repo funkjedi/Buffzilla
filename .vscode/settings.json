@@ -1,0 +1,12 @@
+{
+    "editor.formatOnSave": true,
+    "Lua.diagnostics.disable": [
+        //"undefined-global"
+    ],
+    "Lua.diagnostics.globals": [
+    ],
+    "Lua.workspace.ignoreDir": [
+        ".vscode",
+        "libs",
+    ]
+}
