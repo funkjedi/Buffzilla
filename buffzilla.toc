@@ -3,10 +3,10 @@
 ## Notes: Buffzilla is a simple buff reminder addon.
 ## Author: funkjedi
 ## Version: 2.05
-## X-Category: Buffs
-## X-Website: http://wow.curseforge.com/projects/buffzilla
-## X-WoWI-ID: 10487
 ## SavedVariables: BuffzillaDB
+## X-Category: Buffs
+## X-Curse-Project-ID: 7783
+## X-WoWI-ID: 10487
 
 embeds.xml
 localization\localization.enUS.lua
