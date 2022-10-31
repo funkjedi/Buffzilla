@@ -6,6 +6,7 @@
 ## SavedVariables: BuffzillaDB
 ## X-Category: Buffs
 ## X-Curse-Project-ID: 7783
+## X-Wago-ID: 25NRW163
 ## X-WoWI-ID: 10487
 
 embeds.xml
