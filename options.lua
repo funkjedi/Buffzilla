@@ -29,7 +29,8 @@ function Buffzilla:CreateInterfaceOptions()
     local frame = CreateFrame('Frame', nil, InterfaceOptionsFrame)
     frame.name = L['BUFFZILLA']
 
-    InterfaceOptions_AddCategory(frame)
+    local category = Settings.RegisterCanvasLayoutCategory(frame, frame.name)
+    Settings.RegisterAddOnCategory(category)
 
     local title = frame:CreateFontString(nil, 'ARTWORK', 'GameFontNormalLarge')
     title:SetText(L['WATCHLIST'])
