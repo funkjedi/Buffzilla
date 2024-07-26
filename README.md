@@ -1,6 +1,6 @@
 # Buffzilla
 
-Buffzilla is a simple buff reminder addon. You tell it what buff to watch and it reminds you when it's missing.
+Buffzilla is a simple buff reminder addon. You tell it what buff to watch and it reminds you when it's missing. Then Buffzilla will present you with a clickable notification which re-buffs you with the missing buff.
 
 ## Usage
 Using `/buffzilla` by itself will bring up the options window. The `watch` command lets you add a spell or a group of spells. The watch command will also accept links from your spellbook. See the examples below to get a feel for it.
