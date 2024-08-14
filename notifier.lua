@@ -78,7 +78,7 @@ function Buffzilla:UpdateNotifier()
         self.notifier:Hide()
     else
         self.notifier.spell:SetText(buff.spellname)
-        self.notifier.icon:SetTexture(GetSpellTexture(buff.spellname))
+        self.notifier.icon:SetTexture(C_Spell.GetSpellTexture(buff.spellname))
         self.notifier.icon:SetAllPoints()
 
         if buff.oncooldown then
@@ -89,8 +89,8 @@ function Buffzilla:UpdateNotifier()
             self.notifier.icon:SetVertexColor(1, 1, 1)
         end
 
-        local start, duration, enable = GetSpellCooldown(buff.spellname)
-        CooldownFrame_Set(self.notifier.cooldown, start, duration, enable)
+        local cooldown = C_Spell.GetSpellCooldown(buff.spellname)
+        CooldownFrame_Set(self.notifier.cooldown, cooldown.startTime, cooldown.duration, cooldown.isEnabled)
         self.notifier:Show()
     end
 

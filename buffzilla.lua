@@ -48,8 +48,8 @@ end
 
 -- keeps track of all buffs and when they were last cast
 function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
-    local timestamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceFlags2, destGUID, destName, destFlags, destFlags2,
-        spellId, spellName, spellSchool, auraType = CombatLogGetCurrentEventInfo()
+    local timestamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceFlags2, destGUID, destName, destFlags, destFlags2, spellId, spellName, spellSchool, auraType =
+        CombatLogGetCurrentEventInfo()
 
     local auraEventTypes = {
         ['SPELL_AURA_APPLIED'] = true,
@@ -61,7 +61,7 @@ function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
         ['SPELL_AURA_BROKEN_SPELL'] = true,
     }
 
-    if auraEventTypes[eventType] and auraType == 'BUFF' and destGUID == UnitGUID('player') then
+    if spellName and auraEventTypes[eventType] and auraType == 'BUFF' and destGUID == UnitGUID('player') then
         self.db.char.bufflog[spellName] = timestamp
     end
 end
@@ -71,26 +71,42 @@ function Buffzilla:GetHighestPriorityBuff()
     self.buffdebug = buffs
 
     for index = 1, 40 do
-        local name, _, _, _, _, _, expirationTime, unitCaster, _, _, _, spellId = UnitAura('player', index, 'HELPFUL')
-        if name then
-            buffs[name] = { name = name, expirationTime = expirationTime, spellId = spellId, unitCaster = unitCaster }
-        else
+        local aura = C_UnitAuras.GetAuraDataByIndex('player', index, 'HELPFUL')
+
+        if not aura then
             break
         end
+
+        buffs[aura.name] = {
+            name = aura.name,
+            expirationTime = aura.expirationTime,
+            spellId = aura.spellId,
+            unitCaster = aura.sourceUnit
+        }
     end
 
     local _, mainHandExpiration, _, mainHandEnchantID, _, offHandExpiration, _, offHandEnchantID = GetWeaponEnchantInfo()
 
     if mainHandEnchantID == 5401 then
-        local name, _, _, _, _, _, spellId = GetSpellInfo('Windfury Weapon')
+        local spell = C_Spell.GetSpellInfo('Windfury Weapon')
 
-        buffs[name] = { name = name, expirationTime = mainHandExpiration, spellId = spellId, unitCaster = 'player' }
+        buffs[spell.name] = {
+            name = spell.name,
+            expirationTime = mainHandExpiration,
+            spellId = spell.spellID,
+            unitCaster = 'player'
+        }
     end
 
     if offHandEnchantID == 5400 then
-        local name, _, _, _, _, _, spellId = GetSpellInfo('Flametongue Weapon')
+        local spell = C_Spell.GetSpellInfo('Flametongue Weapon')
 
-        buffs[name] = { name = name, expirationTime = offHandExpiration, spellId = spellId, unitCaster = 'player' }
+        buffs[spell.name] = {
+            name = spell.name,
+            expirationTime = offHandExpiration,
+            spellId = spell.spellID,
+            unitCaster = 'player'
+        }
     end
 
     -- find any missing buffs
@@ -129,8 +145,9 @@ function Buffzilla:GetHighestPriorityBuff()
         end
 
         -- if we know the buff and we're missing it add it to our list
-        if spellname and GetSpellInfo(spellname) and not buffs[spellname] then
-            local cooldown, oncooldown = select(2, GetSpellCooldown(spellname)), false
+        if spellname and C_Spell.GetSpellInfo(spellname) and not buffs[spellname] then
+            local spellCooldown = C_Spell.GetSpellCooldown(spellname)
+            local cooldown, oncooldown = spellCooldown.duration, false
 
             if cooldown and cooldown > 0 then
                 oncooldown = true
@@ -166,16 +183,17 @@ function Buffzilla:AddRule(spellstring)
 
     string.gsub(spellstring, '%s*([^,]*[^, ])%s*,?%s*', function(spellname)
         local spellid = select(3, string.find(spellname, '|c%x+|Hspell:(.+)|h%[.*%]'))
-        spellname = GetSpellInfo(spellid or spellname)
-        if spellname then
-            table.insert(spells, spellname)
+        local spellInfo = C_Spell.GetSpellInfo(spellid or spellname)
+        if spellInfo then
+            table.insert(spells, spellInfo.name)
         else
             spell_found = false
         end
     end)
 
     if spell_found then
-        table.insert(self.db.char.buffset, { spellname = #spells > 1 and spells or spells[1], priority = #self.db.char.buffset + 1 })
+        table.insert(self.db.char.buffset,
+            { spellname = #spells > 1 and spells or spells[1], priority = #self.db.char.buffset + 1 })
         return true
     end
 end

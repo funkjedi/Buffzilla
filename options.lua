@@ -51,7 +51,8 @@ function Buffzilla:CreateInterfaceOptions()
         for _, rule in ipairs(Buffzilla.db.char.buffset) do
             if type(rule.spellname) == 'table' then
                 for index = 1, #rule.spellname do
-                    value = value .. (index == #rule.spellname and rule.spellname[index] or rule.spellname[index] .. ', ')
+                    value = value ..
+                    (index == #rule.spellname and rule.spellname[index] or rule.spellname[index] .. ', ')
                 end
             else
                 value = value .. rule.spellname
@@ -73,7 +74,8 @@ function Buffzilla:CreateInterfaceOptions()
     end
 
     local buffs =
-        wf.factory('MultiLineEditBox', { key = 'buffset', parent = frame, width = 360, lines = 5, get = getBuffs, set = setBuffs })
+        wf.factory('MultiLineEditBox',
+            { key = 'buffset', parent = frame, width = 360, lines = 5, get = getBuffs, set = setBuffs })
     buffs.frame:SetPoint('TOPLEFT', subtitle, 'BOTTOMLEFT', 0, -8)
     buffs.button:HookScript('OnClick', function()
         buffs.editBox:SetText(getBuffs())
@@ -83,13 +85,13 @@ function Buffzilla:CreateInterfaceOptions()
     local function ChatEdit_InsertLinkHook(text)
         if buffs.editBox:IsVisible() then
             local spellid = select(3, string.find(text, '|c%x+|Hspell:(.+)|h%[.*%]'))
-            local spellname = GetSpellInfo(spellid)
-            if spellname then
+            local spellInfo = C_Spell.GetSpellInfo(spellid)
+            if spellInfo then
                 if not buffs.editBox:HasFocus() then
                     buffs.editBox:SetFocus()
                     buffs.editBox:SetCursorPosition(buffs.editBox:GetNumLetters())
                 end
-                buffs.editBox:Insert(spellname)
+                buffs.editBox:Insert(spellInfo.name)
                 buffs.button:Enable()
             end
         end
@@ -215,5 +217,4 @@ function Buffzilla:CreateInterfaceOptions()
     frame:SetScript('OnShow', function()
         buffs:SetText(getBuffs())
     end)
-
 end
