@@ -1,3 +1,7 @@
+2.09
+- update for patch 12.0.0
+- replace COMBAT_LOG_EVENT_UNFILTERED with simpler way of spell prioritizing
+
 2.08
 - update for patch 11.0.2
 

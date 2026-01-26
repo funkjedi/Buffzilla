@@ -1,6 +1,6 @@
 function Buffzilla:CreateNotifier()
     self.notifier = CreateFrame('Button', 'BuffzillaNotifier', UIParent, 'SecureActionButtonTemplate')
-    self.notifier:RegisterForClicks('AnyDown', 'AnyUp')
+    self.notifier:RegisterForClicks('LeftButtonDown', 'LeftButtonUp')
     self.notifier:SetClampedToScreen(true)
     self.notifier:SetPoint('CENTER')
 

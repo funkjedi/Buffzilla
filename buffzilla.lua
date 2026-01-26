@@ -10,7 +10,6 @@ function Buffzilla:Initialize(event, addon)
     self:CreateInterfaceOptions()
 
     self:RegisterEvent('UPDATE_BINDINGS')
-    self:RegisterEvent('COMBAT_LOG_EVENT_UNFILTERED')
 
     -- expired anything that hasn't been seen in a week
     local timestamp = time()
@@ -46,26 +45,6 @@ function Buffzilla:UPDATE_BINDINGS()
     end
 end
 
--- keeps track of all buffs and when they were last cast
-function Buffzilla:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
-    local timestamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceFlags2, destGUID, destName, destFlags, destFlags2, spellId, spellName, spellSchool, auraType =
-        CombatLogGetCurrentEventInfo()
-
-    local auraEventTypes = {
-        ['SPELL_AURA_APPLIED'] = true,
-        ['SPELL_AURA_REMOVED'] = true,
-        ['SPELL_AURA_APPLIED_DOSE'] = true,
-        ['SPELL_AURA_REMOVED_DOSE'] = true,
-        ['SPELL_AURA_REFRESH'] = true,
-        ['SPELL_AURA_BROKEN'] = true,
-        ['SPELL_AURA_BROKEN_SPELL'] = true,
-    }
-
-    if spellName and auraEventTypes[eventType] and auraType == 'BUFF' and destGUID == UnitGUID('player') then
-        self.db.char.bufflog[spellName] = timestamp
-    end
-end
-
 function Buffzilla:GetHighestPriorityBuff()
     local buffs = {} -- cache current buffs in a lookup table
     self.buffdebug = buffs
@@ -83,6 +62,9 @@ function Buffzilla:GetHighestPriorityBuff()
             spellId = aura.spellId,
             unitCaster = aura.sourceUnit
         }
+
+        -- track when we last saw this buff
+        self.db.char.bufflog[aura.name] = time()
     end
 
     local _, mainHandExpiration, _, mainHandEnchantID, _, offHandExpiration, _, offHandEnchantID = GetWeaponEnchantInfo()
