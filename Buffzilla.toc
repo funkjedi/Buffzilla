@@ -2,7 +2,7 @@
 ## Title: Buffzilla
 ## Notes: Buffzilla is a simple buff reminder addon.
 ## Author: funkjedi
-## Version: 2.08
+## Version: 2.10
 ## SavedVariables: BuffzillaDB
 ## X-Category: Buffs
 ## X-Curse-Project-ID: 7783

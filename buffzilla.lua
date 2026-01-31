@@ -56,15 +56,17 @@ function Buffzilla:GetHighestPriorityBuff()
             break
         end
 
-        buffs[aura.name] = {
-            name = aura.name,
-            expirationTime = aura.expirationTime,
-            spellId = aura.spellId,
-            unitCaster = aura.sourceUnit
-        }
+        if not issecretvalue(aura.spellId) then
+            buffs[aura.name] = {
+                name = aura.name,
+                expirationTime = aura.expirationTime,
+                spellId = aura.spellId,
+                unitCaster = aura.sourceUnit,
+            }
 
-        -- track when we last saw this buff
-        self.db.char.bufflog[aura.name] = time()
+            -- track when we last saw this buff
+            self.db.char.bufflog[aura.name] = time()
+        end
     end
 
     local _, mainHandExpiration, _, mainHandEnchantID, _, offHandExpiration, _, offHandEnchantID = GetWeaponEnchantInfo()
@@ -72,23 +74,13 @@ function Buffzilla:GetHighestPriorityBuff()
     if mainHandEnchantID == 5401 then
         local spell = C_Spell.GetSpellInfo('Windfury Weapon')
 
-        buffs[spell.name] = {
-            name = spell.name,
-            expirationTime = mainHandExpiration,
-            spellId = spell.spellID,
-            unitCaster = 'player'
-        }
+        buffs[spell.name] = { name = spell.name, expirationTime = mainHandExpiration, spellId = spell.spellID, unitCaster = 'player' }
     end
 
     if offHandEnchantID == 5400 then
         local spell = C_Spell.GetSpellInfo('Flametongue Weapon')
 
-        buffs[spell.name] = {
-            name = spell.name,
-            expirationTime = offHandExpiration,
-            spellId = spell.spellID,
-            unitCaster = 'player'
-        }
+        buffs[spell.name] = { name = spell.name, expirationTime = offHandExpiration, spellId = spell.spellID, unitCaster = 'player' }
     end
 
     -- find any missing buffs
@@ -128,11 +120,17 @@ function Buffzilla:GetHighestPriorityBuff()
 
         -- if we know the buff and we're missing it add it to our list
         if spellname and C_Spell.GetSpellInfo(spellname) and not buffs[spellname] then
+            local cooldown = 0
+            local oncooldown = false
             local spellCooldown = C_Spell.GetSpellCooldown(spellname)
-            local cooldown, oncooldown = spellCooldown.duration, false
 
-            if cooldown and cooldown > 0 then
-                oncooldown = true
+            if spellCooldown then
+                local duration = spellCooldown.duration
+
+                if duration and not issecretvalue(duration) and duration > 0 then
+                    cooldown = duration
+                    oncooldown = true
+                end
             end
 
             table.insert(missingBuffs, {
@@ -174,8 +172,7 @@ function Buffzilla:AddRule(spellstring)
     end)
 
     if spell_found then
-        table.insert(self.db.char.buffset,
-            { spellname = #spells > 1 and spells or spells[1], priority = #self.db.char.buffset + 1 })
+        table.insert(self.db.char.buffset, { spellname = #spells > 1 and spells or spells[1], priority = #self.db.char.buffset + 1 })
         return true
     end
 end

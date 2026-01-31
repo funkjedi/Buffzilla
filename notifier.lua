@@ -89,9 +89,13 @@ function Buffzilla:UpdateNotifier()
             self.notifier.icon:SetVertexColor(1, 1, 1)
         end
 
-        local cooldown = C_Spell.GetSpellCooldown(buff.spellname)
-        CooldownFrame_Set(self.notifier.cooldown, cooldown.startTime, cooldown.duration, cooldown.isEnabled)
-        self.notifier:Show()
+        local cd = C_Spell.GetSpellCooldown(buff.spellname)
+
+        if cd and not issecretvalue(cd.startTime) and not issecretvalue(cd.duration) then
+            CooldownFrame_Set(self.notifier.cooldown, cd.startTime or 0, cd.duration or 0, cd.isEnabled and 1 or 0)
+        else
+            CooldownFrame_Clear(self.notifier.cooldown)
+        end
     end
 
     -- stash the buff
